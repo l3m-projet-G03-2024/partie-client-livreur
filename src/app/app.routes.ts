@@ -1,10 +1,8 @@
 import { Routes } from '@angular/router';
-import { CartoComponent } from './components/carto/carto.component';
-import { ListsComponent } from './components/lists/lists.component';
-import { PresentationComponent } from './components/presentation/presentation.component';
+import { SignInComponent } from './components/sign-in/sign-in.component';
+import { HomeComponent } from './components/home/home.component';
 export const routes: Routes = [
-    { path: 'presentation', title: "Présentation", component: PresentationComponent },
-    { path: 'leaflet', title: "Cartographie avec les leaflet", component: CartoComponent },
-    { path: 'lists', title: "Listes", component: ListsComponent },
-    { path: '**', redirectTo: '/leaflet' }
+    { path: '', redirectTo: '/home', pathMatch: 'full' },
+    { path: 'sign-in', title: "Connexion", component: SignInComponent },
+    { path: 'home', title: "Livreur", component: HomeComponent },
 ];
