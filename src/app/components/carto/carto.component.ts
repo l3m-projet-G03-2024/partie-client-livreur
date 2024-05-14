@@ -1,26 +1,28 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnDestroy, Signal, computed, signal } from '@angular/core';
-
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, Signal, computed, signal } from '@angular/core';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import {
-  LatLng, Layer, TileLayer, tileLayer, polygon,
+  LatLng, Layer, TileLayer, tileLayer, polyline,
   Map as LeafletMap,
-  Polygon as LeafletPolygon,
   Marker as LeafletMarker,
+  Polyline as LeafletPolyline,
 } from 'leaflet';
-
 import { Subscription } from 'rxjs';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
-import { GeoapiService, PositionToLatLng } from '../../services/geoapi.service';
+import { GeoapiService } from '../../services/geoapi.service';
 import { getObsResize } from './utils/rxjs';
 import { HttpClientModule } from '@angular/common/http';
 import { getMarker } from './utils/marker';
+import { toObservable } from "@angular/core/rxjs-interop";
+import { TourneeService } from '../../services/tournee.service';
+import { LeafletColors } from './utils/colors';
+import { Coordinates, GeoAPICoordinatesFormat } from '../../utils/types/coordinates.type';
 
 @Component({
   selector: 'app-carto',
   standalone: true,
-  providers: [ GeoapiService ],
+  providers: [ GeoapiService, TourneeService ],
   imports: [
     CommonModule, LeafletModule,
     MatGridListModule, MatListModule,
@@ -32,15 +34,38 @@ import { getMarker } from './utils/marker';
 })
 export class CartoComponent implements OnDestroy {
   readonly center = signal<LatLng>(new LatLng(45.166672, 5.71667));
-  readonly zoom = signal<number>(12);
+  readonly zoom = signal<number>(11);
   private readonly tileLayer = signal<TileLayer>(tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' }))
   private readonly leafletMap = signal<LeafletMap | undefined>(undefined);
-  private readonly communes = signal<(LeafletPolygon | LeafletMarker)[]>([])
+  private readonly tournees = signal<(LeafletPolyline | LeafletMarker)[]>([]);
+
+  private readonly sigCoordinates = signal<Coordinates>({list: []});
+  private readonly coordinates$ = toObservable(this.sigCoordinates);
+
+  private _loadTournee = this.coordinates$.subscribe(response => {
+    if (this.sigCoordinates().list.length >0 && this.sigCoordinates().list.length <= 2) {
+      const startCoord = this.sigCoordinates().entrepot || this.sigCoordinates().list[0];
+      
+      this.center.set(new LatLng(startCoord[0], startCoord[1]));
+    }
+    
+    if (response.list.length != 0) {
+      this.displayMarkers();
+      this.displayPolylines().then();
+    }
+
+  });
+
+  @Input({required:true})
+  get coordinates(): Coordinates { return this.sigCoordinates()}
+  set coordinates(coordinates: Coordinates) {
+    this.sigCoordinates.set(coordinates);
+  }
 
   readonly layers: Signal<Layer[]> = computed(() => [
     this.tileLayer(),
-    ...this.communes(),
-  ])
+    ...this.tournees(),
+  ]);
 
   private subResize?: Subscription;
 
@@ -52,22 +77,44 @@ export class CartoComponent implements OnDestroy {
     });
   }
 
-  constructor(private geoAPI: GeoapiService) {
-    [
-      { postalCode: "38000", color: "blue" },
-      { postalCode: "38130", color: "green" },
-      { postalCode: "38170", color: "red" },
-      { postalCode: "38600", color: "yellow" },
-    ].forEach( async ({ postalCode, color }) => {
-      const [fp, fm] = await this.geoAPI.getCommune(postalCode);
-      const p = polygon(
-        fp.geometry.coordinates.map(L => L.map(PositionToLatLng)),
-        {color: "black", fillColor: color, fillOpacity: 0.5}
-      )
-      const m = getMarker( PositionToLatLng(fm.geometry.coordinates) )
-      this.communes.update( LC => [...LC, p, m] )
-    })
-    geoAPI.getCommune('38000').then(console.log);
+  constructor(private geoAPI: GeoapiService) {}
+
+  displayMarkers(): void {
+    
+    const coords =  this.sigCoordinates().list.map(coord => {
+        const [lat, lng] = coord
+        return new LatLng(lat, lng);
+      })
+
+    const markers = coords.map(x => getMarker(x, LeafletColors[0], ''));
+
+    if (this.sigCoordinates().entrepot) {
+      markers.push(getMarker({
+        lat: this.sigCoordinates().entrepot![0],
+        lng: this.sigCoordinates().entrepot![1]
+      } as LatLng, 'gold', "Entrepôt"));
+    } else if (coords.length == 2) {
+      markers[1] = getMarker(coords[1], LeafletColors[1], '');
+    }
+    
+    this.tournees.update(u => [...u, ...markers]);
+  }
+
+  async displayPolylines(): Promise<void> {
+    let coords: GeoAPICoordinatesFormat[] =  this.sigCoordinates().list.map(coord => {
+        const [lat, lng] = coord;
+        return [lng, lat];
+    });
+
+    if (this.sigCoordinates().entrepot) {
+      const [lat, lng] = this.sigCoordinates().entrepot!;
+      coords = [[lng, lat], ...coords];
+    }
+
+    const directions = await this.geoAPI.getDirections([...coords]);
+    
+    const polylines = polyline(directions, {color: LeafletColors[0]});
+    this.tournees.update(u => [...u, polylines]);
   }
 
   ngOnDestroy(): void {

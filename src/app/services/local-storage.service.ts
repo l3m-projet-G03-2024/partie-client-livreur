@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { PreviousStep } from '../utils/types/previous-step.type';
+import { Tournee } from '../utils/types/tournee.type';
 
 @Injectable({
   providedIn: 'root'
@@ -25,5 +27,13 @@ export class LocalStorageService {
   // Clear all items from local storage
   clear(): void {
     localStorage.clear();
+  }
+
+  getPreviousStep(): PreviousStep {
+    return JSON.parse(this.getItem("previous-step") as string) as PreviousStep;
+  }
+
+  getTournee(): Tournee {
+    return JSON.parse(this.getItem("tournee") as string) as Tournee;
   }
 }
