@@ -1,0 +1,96 @@
+<section class="flex flex-col h-full w-full pt-[46px]">
+    <div class="h-2/5 w-full z-10">
+        <app-carto class="h-full block" [coordinates]="sigCoordinates()"></app-carto>
+    </div>
+    <div class="h-3/5 rounded-t-2xl bg-white mt-[-20px] z-20">
+        <mat-tab-group color="primary" class="h-full">
+            <mat-tab label="Détails">
+                <div class="flex flex-col pt-4 px-3 overflow-y-auto">
+                    <div class="w-full flex flex-row mb-1 items-center justify-between">
+                        <div class="pl-2">
+                            <label class="font-medium">Etat</label>
+                        </div>
+                        <div>
+                            <span class="px-2 rounded-xl text-white" [style.background-color] = "sigLivraisonEtat().color">
+                                {{ sigLivraisonEtat().label }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-col mb-1">
+                        <div class="pl-2">
+                            <label class="font-medium">Client: </label>
+                            <label class="text-sm">{{sigClientAdresse().prenom}} {{sigClientAdresse().nom}}</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-col mb-1">
+                        <div class="pl-2">
+                            <label class="font-medium">Départ</label>
+                            @if (sigPreviousStep().isEntrepot) {
+                                <span class="ml-2 inline-block rounded-full w-2 h-2 bg-yellow-400"></span>
+                            } @else {
+                                <span class="ml-2 inline-block rounded-full w-2 h-2 bg-blue-500"></span>
+                            }
+                        </div>
+                        <div class="pl-2">
+                            <label class="text-sm">
+                                {{ sigPreviousStep().adresse }},
+                                 {{ sigPreviousStep().codePostal }}
+                                 {{ sigPreviousStep().ville }}
+                            </label>
+                        </div>
+                    </div>
+                    <div class="h-16 w-0.5 bg-blue-300 ml-4"></div>
+                    <div class="w-full flex flex-col mb-1">
+                        <div class="pl-2">
+                            <label class="font-medium">Arrivée</label>
+                            @if (!sigPreviousStep().isEntrepot) {
+                                <span class="ml-2 inline-block rounded-full w-2 h-2 bg-red-700"></span>
+                            } @else {
+                                <span class="ml-2 inline-block rounded-full w-2 h-2 bg-blue-500"></span>
+                            }
+                        </div>
+                        <div class="pl-2">
+                            <label class="text-sm">
+                                {{ sigClientAdresse().adresse }},
+                                 {{ sigClientAdresse().codePostal }}
+                                 {{ sigClientAdresse().ville }}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                @if (
+                    sigTournee().etat != "PLANIFIEE" && 
+                    sigLivraison().etat != "EFFECTUEE"
+                ) {
+                    @for (item of sigLivraisonNextEtat(); track $index) {
+                        <div class="fixed bottom-4 w-full px-4" [class.hidden]="!canUpdateEtat()">
+                            <button class="w-full rounded-xl bg-slate-950 py-4 uppercase text-white"
+                                    (click)="changeLivraisonEtat(item)">
+                                {{defineLivraisonEtat(item).label}}
+                            </button>
+                        </div>
+                    }
+                }
+            </mat-tab>
+            <mat-tab label="Commandes">
+                <div class="h-full w-full px-2">
+                    @for (commande of sigLivraison().commandes; track $index) {
+                        <div class="flex flex-col w-full py-2 px-4 my-2 shadow-md shadow-gray-300 bg-gray-50 hover:bg-zinc-100">
+                            <div class="w-full  flex flex-row items-center justify-between ">
+                                <label class="block text-sm">commande: {{commande.reference}}</label>
+                                <span class="block text-sm px-2 rounded-xl text-white" [style.background-color] = "defineCommandeEtat(commande.etat).color">
+                                    {{defineCommandeEtat(commande.etat).label}}
+                                </span>
+                            </div>
+                            <div>
+                                <label class="text-sm" >
+                                    Option montage: {{hasOptionMontageCommande([commande]) ? 'Oui' : 'Non'}}
+                                </label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </div>
+</section>

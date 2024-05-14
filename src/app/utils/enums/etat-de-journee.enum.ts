@@ -1,0 +1,6 @@
+export enum EtatDeJournee {
+    PLANIFIEE = "PLANIFIEE",
+    NONPLANIFIEE = "NONPLANIFIEE",
+    ENCOURS = "ENCOURS", 
+    EFFECTUEE = "EFFECTUE"
+};

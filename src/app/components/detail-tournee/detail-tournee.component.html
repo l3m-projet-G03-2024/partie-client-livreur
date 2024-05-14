@@ -1,0 +1,123 @@
+<section class="flex flex-col h-full w-full pt-14">
+    <div class="h-[45%] w-full z-10">
+        <app-carto class="h-full block" [coordinates]="sigCoordinates()"></app-carto>
+    </div>
+    <div class="h-[55%] rounded-t-2xl bg-white mt-[-20px] z-20">
+        <mat-tab-group color="primary" class="h-full" [selectedIndex]="1">
+            <mat-tab label="Détails">
+                <div class="flex flex-col pt-4 px-3">
+                    <div class="w-full flex flex-row mb-1 items-center justify-between">
+                        <div class="pl-2">
+                            <label class="font-medium text-lg">Etat</label>
+                        </div>
+                        <div>
+                            <span class="text-base px-2 py-px rounded-xl text-white" [style.background-color] = "sigTourneeEtat().color">
+                                {{ sigTourneeEtat().label }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Journée</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base">{{ sigTournee().journee?.reference }}</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Date</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base">{{ sigTournee().journee?.date }}</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Entrepôt</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base">{{ sigTournee().journee?.entrepot?.nom }}</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Tournée</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base">{{sigTournee().reference}}</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Livreur</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base">CSW</label>
+                        </div>
+                    </div>
+                    <div class="w-full flex flex-row mb-1 items-center">
+                        <div class="w-4/6">
+                            <label class="font-medium text-lg">Camion</label>
+                        </div>
+                        <div class="w-2/6 pl-2">
+                            <label class="text-base"> {{sigTournee().camion?.immatriculation}} </label>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        @if (sigTourneeEtat().label == 'Planifiée') {
+                            <div class="w-full px-4">
+                                <button class="w-full rounded-xl bg-slate-950 py-4 uppercase text-white"
+                                        (click)="updateTourneeEtat('ENCHARGEMENT')">
+                                    En chargement
+                                </button>
+                            </div>
+                        }
+                        
+                        @if (sigTournee().etat == "ENRETOUR") {
+                            <div class="w-full px-4">
+                                <button class="w-full rounded-xl bg-slate-950 py-4 uppercase text-white"
+                                        (click)="updateTourneeEtat('EFFECTUEE')">
+                                    Effectuée
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                
+            </mat-tab>
+            <mat-tab label="Livraisons">
+                <div class="h-full w-full px-2">
+                    @for (item of sigTournee().livraisons; track $index) {
+                        <div class="flex flex-row items-center w-full rounded-xl py-2 pl-4 pr-2 my-2 shadow-md shadow-gray-300 bg-gray-50 hover:bg-zinc-100"
+                             (click)="navigateTo(item.reference)">
+                            <div class="border-r-2 border-gray-500">
+                                <label class="font-semibold text-2xl mr-4">{{$index+1}}</label>
+                            </div>
+                            <div class="flex flex-col pl-2 w-full">
+                                <div class="w-full flex flex-row items-center justify-between">
+                                    <label class="block text-sm">Livraison: {{item.reference}}</label>
+                                    <span class="block text-xs px-2 rounded-xl text-white" [style.background-color] = "defineLivraisonEtat(item.etat).color">
+                                        {{defineLivraisonEtat(item.etat).label}}
+                                    </span>
+                                </div>
+                                <div>
+                                    <label class="text-sm">Client: {{item.commandes![0].client?.prenom}} {{item.commandes![0].client?.nom}}</label>
+                                </div>
+                                <div>
+                                    <label class="text-sm">{{item.commandes![0].client?.adresse}}, {{item.commandes![0].client?.codePostal}} {{item.commandes![0].client?.ville}}</label>
+                                </div>
+                                <div>
+                                    @for (c of item.commandes; track $index) {
+                                        <span class="bg-slate-200 px-1 py-1 rounded-xl text-sm mx-1">{{c.reference}}</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </div>
+</section>

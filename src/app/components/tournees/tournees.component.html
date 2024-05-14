@@ -1,0 +1,28 @@
+<section class="h-full w-full px-4">
+    @if (!sigTourneeNotAvailable()) {
+        <div class="w-full mb-4 mt-16">
+            <span class="font-medium text-2xl">Tournées</span>
+        </div>
+        <div class="flex flex-col">
+            @for (tournee of sigTournees(); track $index) {
+                <a routerLink="details/{{tournee.reference}}">
+                    <div class="flex flex-row items-center justify-between w-full h-20 rounded-xl py-4 px-4 my-2 shadow-md shadow-gray-300 bg-gray-50 hover:bg-zinc-100 cursor-move">
+                        <div>
+                            <p class="font-normal">{{tournee.reference}}</p>
+                        </div>
+                        <div>
+                            <p class="font-normal text-sm">{{ getDate(tournee.reference).toLocaleDateString("fr") }}</p>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+    @if (sigTourneeNotAvailable()) {
+        <div class="flex flex-col w-full h-full justify-center">
+            <span class="uppercase text-4xl text-slate-200 align-middle text-center">
+                pas de tournée disponible aujourd'hui
+            </span>
+        </div>
+    }
+</section>

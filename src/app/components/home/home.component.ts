@@ -29,16 +29,11 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const localStorageAccessToken = this.localStorageService.getItem("accessToken");
     
-    if (!localStorageAccessToken) {
-      this.router.navigate(['/','sign-in']);
-    } 
   }
 
   signOut() {
     this.localStorageService.clear();
     this.router.navigate(['/sign-in']);
   }
-
 }
