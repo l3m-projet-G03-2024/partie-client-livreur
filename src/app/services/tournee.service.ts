@@ -16,7 +16,7 @@ export class TourneeService {
 
   listTournees(emailEmploye?: string): Promise<Tournee[]> {
     return firstValueFrom(this.httpClient.get<Tournee[]>(
-        `${this.MAIN_SERVER_BASE_PATH}/tournees/employes/${emailEmploye}`,
+        `${this.MAIN_SERVER_BASE_PATH}/tournees/employes/${emailEmploye}/`,
         {
           headers: { Accept: 'application/json' }
         }

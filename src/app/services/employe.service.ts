@@ -17,7 +17,7 @@ export class EmployeService {
 
   getEmploye(emailEmploye: string): Promise<Employe> {
     return firstValueFrom(this.httpClient.get<Employe>(
-        `${this.MAIN_SERVER_BASE_PATH}/employes/${emailEmploye}`,
+        `${this.MAIN_SERVER_BASE_PATH}/employes/${emailEmploye}/`,
         {
           headers: { Accept: 'application/json' }
         }
